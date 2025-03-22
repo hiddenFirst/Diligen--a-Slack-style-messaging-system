@@ -1,0 +1,480 @@
+#
+# CSE186 Assignment 8 Backend
+#
+
+openapi: '3.0.3'
+
+info:
+  description: CSE186 Assignment 8 Backend
+  version: 0.2.0
+  title: CSE186 Assignment 8 Backend
+
+servers:
+  - url: http://localhost:3010/api/v0
+
+paths:
+  /login:
+    get:
+      description: "Handles user login and JWT authentication."
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: email
+          in: query
+          required: false
+          description: "User email for login"
+          schema:
+            type: string
+            nullable: true
+          allowEmptyValue: true
+        - name: password
+          in: query
+          required: false
+          description: "User password for login"
+          schema:
+            type: string
+            nullable: true
+          allowEmptyValue: true
+        - name: Authorization
+          in: header
+          required: false
+          description: "JWT token for authentication (format: Bearer <token>)"
+          schema:
+            type: string
+            nullable: true
+          allowEmptyValue: true
+      responses:
+        "200":
+          description: "Successful login or valid JWT authentication"
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - type: object
+                    properties:
+                      id:
+                        type: string
+                        format: uuid
+                        example: "550e8400-e29b-41d4-a716-446655440000"
+                      email:
+                        type: string
+                        format: email
+                        example: "tfu18@ucsc.edu"
+                      name:
+                        type: string
+                        example: "molly"
+                      token:
+                        type: string
+                        example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                      lastLocation:
+                        type: object
+                        nullable: true
+                        properties:
+                          workspaceId:
+                            type: string
+                            format: uuid
+                            nullable: true
+                            example: "550e8400-e29b-41d4-a716-446655440000"
+                          channelId:
+                            type: string
+                            format: uuid
+                            nullable: true
+                            example: "fb304b6f-4e0d-4f4b-aa6e-c3a14a83e94e"
+                          messageId:
+                            type: string
+                            format: uuid
+                            nullable: true
+                            example: "b9ee8737-74fa-4fb4-83e0-da598de54f77"
+                    required: [id, email, name, token, lastLocation]
+                  - type: object
+                    properties:
+                      userId:
+                        type: string
+                        format: uuid
+                        example: "550e8400-e29b-41d4-a716-446655440000"
+                      email:
+                        type: string
+                        format: email
+                        example: "tfu18@ucsc.edu"
+                      name:
+                        type: string
+                        example: "molly"
+                      lastLocation:
+                        type: object
+                        nullable: true
+                        properties:
+                          workspaceId:
+                            type: string
+                            format: uuid
+                            nullable: true
+                            example: "550e8400-e29b-41d4-a716-446655440000"
+                          channelId:
+                            type: string
+                            format: uuid
+                            nullable: true
+                            example: "fb304b6f-4e0d-4f4b-aa6e-c3a14a83e94e"
+                          messageId:
+                            type: string
+                            format: uuid
+                            nullable: true
+                            example: "b9ee8737-74fa-4fb4-83e0-da598de54f77"
+                    required: [userId, email, name, lastLocation]
+        "403":
+          description: "Invalid JWT token"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Invalid token"
+        "404":
+          description: "Invalid email or password"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Invalid email or password"
+  /workspaces:
+    get:
+      summary: "Get workspaces for the authenticated user"
+      description: "Retrieve all workspaces the authenticated user is a member of."
+      security:
+        - BearerAuth: []
+      responses:
+        "200":
+          description: "Successfully retrieved workspaces"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: string
+                      format: uuid
+                      example: "550e8400-e29b-41d4-a716-446655440000"
+                    name:
+                      type: string
+                      example: "CSE186"
+        "404":
+          description: "No workspaces found for the user"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "No workspaces found"
+  /channels:
+    get:
+      summary: "Get workspaces's channels for the authenticated user"
+      description: "get all channels that in user's workspaces."
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: workspaces
+          in: query
+          required: false
+          description: "User's workspaces where channels in it"
+          schema:
+            type: string
+            nullable: true
+          allowEmptyValue: true
+      responses:
+        "200":
+          description: "Successfully retrieved channels"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: string
+                      format: uuid
+                      example: "c1234567-3a6a-4a40-b2c9-c207cc80b267"
+                    name:
+                      type: string
+                      example: "Assignment1"
+        "404":
+          description: "No channels found in workspaces"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "No channels found"
+  /messages:
+    get:
+      summary: "Get channels's message for the authenticated user"
+      description: "get all messages that in channels."
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: channelId
+          in: query
+          required: false
+          description: "User channels id"
+          schema:
+            type: string
+            nullable: true
+          allowEmptyValue: true
+      responses:
+        "200":
+          description: "Successfully retrieved channels's messages"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: string
+                      format: uuid
+                      example: "c1234567-3a6a-4a40-b2c9-c207cc80b267"
+                    text:
+                      type: string
+                      example: "Hello"
+                    sender:
+                      type: string
+                      example: "Alice"
+                    timestamp:
+                      type: string
+                      example: "2024-03-07T12:00:00Z"
+                    UserEmail:
+                      type: string
+                      format: email
+                      example: "bob@company.com"
+                    thread:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          text:
+                            type: string
+                            example: "Reply message"
+                          sender:
+                            type: string
+                            example: "Charlie"
+                          timestamp:
+                            type: string
+                            example: "2024-03-07T12:10:00Z"
+                          UserEmail:
+                            type: string
+                            format: email
+                            example: "charlie@company.com"
+                      nullable: true
+                      default: []
+        "404":
+          description: "No channels found in workspaces"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "No channels found"
+        "403":
+          description: "Forbidden channels access"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Forbidden"
+        "401":
+          description: "Unauthorized"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Forbidden"
+    post:
+      summary: "Post a new message to a channel"
+      description: "Allows user to send a message to a specific channel."
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                channelId:
+                  type: string
+                  format: uuid
+                  example: "fb304b6f-4e0d-4f4b-aa6e-c3a14a83e94e"
+                text:
+                  type: string
+                  example: "Hello, this is a message!"
+      responses:
+        "200":
+          description: "Message successfully posted"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Message created successfully"
+                  id:
+                    type: string
+                    format: uuid
+                    example: "a6b25a07-d3fb-4d49-983f-9b5b798a8b65"
+        "400":
+          description: "Missing required fields (channel_id or text)"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "No channels found"
+        "401":
+          description: "Unauthorized - Missing or invalid token"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "No channels found"
+        "403":
+          description: "Forbidden - User has no access to the channel"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "No channels found"
+        "404":
+          description: "Failed to store message (channel not found)"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "No channels found"
+        "500":
+          description: "Internal server error"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "No channels found"
+  /lastlocation:
+    put:
+      summary: "Update the authenticated user's last visited location (workspace/channel/message)."
+      description: "Server stores the last location in the person table."
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                workspaceId:
+                  type: string
+                  format: uuid
+                  nullable: true
+                  example: "550e8400-e29b-41d4-a716-446655440000"
+                channelId:
+                  type: string
+                  format: uuid
+                  nullable: true
+                  example: "fb304b6f-4f4b-aa6e-c3a14a83e94e"
+                messageId:
+                  type: string
+                  format: uuid
+                  nullable: true
+                  example: "b9ee8737-74fa-4fb4-83e0-da598de54f77"
+      responses:
+        "200":
+          description: "Updated last location successfully"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  lastLocation:
+                    type: object
+                    properties:
+                      workspaceId:
+                        type: string
+                        format: uuid
+                        nullable: true
+                      channelId:
+                        type: string
+                        format: uuid
+                        nullable: true
+                      messageId:
+                        type: string
+                        format: uuid
+                        nullable: true
+        "401":
+          description: "Unauthorized - Missing or invalid token"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Unauthorized"
+        "403":
+          description: "Token invalid or user not allowed"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Invalid token"
+        "404":
+          description: "User not found"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "User not found"
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
